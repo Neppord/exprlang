@@ -78,6 +78,28 @@ public interface Parser<T> {
         return parser.or(this);
     }
 
+    default Parser<T> chainL(Parser<BinaryOperator<T>> operatorParser) {
+        return chainL(this, operatorParser);
+    }
+
+    default Parser<T> chainL(Parser<T> init, Parser<BinaryOperator<T>> operatorParser) {
+        return s -> {
+            // evaluate
+            Result<T> result = init.parse(s);
+
+            // repackage
+            CharSequence nextS = result.rest;
+            Parser<T> nextInit = constant(result.value);
+
+            Parser<T> merge = apply(
+                nextInit.map(arg1 -> (op, arg2) -> op.apply(arg1, arg2)),
+                operatorParser,
+                this
+            );
+            return chainL(merge, operatorParser).or(nextInit).parse(nextS);
+        };
+    }
+
     default Parser<T> drop(Parser<?> toDrop) {
         return apply((x, y) -> x, this, toDrop);
     }

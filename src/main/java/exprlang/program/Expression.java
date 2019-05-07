@@ -18,4 +18,8 @@ public interface Expression {
     default Expression add(Expression other) {
         return state -> evaluate(state) + other.evaluate(state);
     }
+
+    default Expression subtract(Expression other) {
+        return state -> evaluate(state) - other.evaluate(state);
+    }
 }

@@ -13,6 +13,10 @@ public class Main {
         Parser<BinaryOperator<Expression>> plus = Parser
             .match("+")
             .map( _1 -> Expression::add);
+
+        Parser<BinaryOperator<Expression>> minus = Parser
+            .match("-")
+            .map( _1 -> Expression::subtract);
         Parser<BinaryOperator<Expression>> multiply = Parser
             .match("*")
             .map( _1 -> Expression::multiply);
@@ -32,7 +36,7 @@ public class Main {
         Parser<Expression> variable = identifier.map(Expression::variable);
         Parser<Expression> expression = digit.or(variable)
             .chainR(multiply)
-            .chainR(plus);
+            .chainL(plus.or(minus));
 
         Parser<Program> assignment = Parser
             .apply(Program::assigning, identifier.drop(equals), expression);
@@ -41,7 +45,11 @@ public class Main {
             .map(_1 -> Program::before);
         Parser<Program> programParser = assignment.chainR(newline);
 
-        Program program = programParser.parse("x=20\ny=16+3*2+x").value;
+        String sourceCode =
+            "x=10\n" +
+            "y=9+3*2+x-1-2+2*x"
+        ;
+        Program program = programParser.parse(sourceCode).value;
         System.out.println(program.run(State.empty()).lookup("y"));
     }
 }

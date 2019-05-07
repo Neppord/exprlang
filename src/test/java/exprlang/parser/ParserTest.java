@@ -75,7 +75,7 @@ public class ParserTest {
     }
 
     @Test
-    public void many() throws Exception {
+    public void manyR() throws Exception {
         Parser<String> digit = Parser
             .match("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
             .map(CharSequence::toString);
@@ -85,7 +85,7 @@ public class ParserTest {
     }
 
     @Test
-    public void chain() throws Exception {
+    public void chainR() throws Exception {
         Parser<BinaryOperator<Integer>> plus = Parser
             .match("+")
             .map( _1 -> (x, y) -> x  + y);
@@ -93,7 +93,24 @@ public class ParserTest {
             .match("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
             .map(CharSequence::toString);
         Parser<Integer> number = digit.manyR(String::concat).map(Integer::parseInt);
+
         Parser<Integer> expr = number.chainR(plus);
+
         assertThat(expr.parse("10+1").value, equalTo(11));
+    }
+
+    @Test
+    public void chainl() throws Exception {
+        Parser<BinaryOperator<Integer>> minus = Parser
+            .match("-")
+            .map( _1 -> (x, y) -> x  - y);
+        Parser<String> digit = Parser
+            .match("1", "2", "3", "4", "5", "6", "7", "8", "9", "0")
+            .map(CharSequence::toString);
+        Parser<Integer> number = digit.manyR(String::concat).map(Integer::parseInt);
+
+        Parser<Integer> expr = number.chainL(minus);
+
+        assertThat(expr.parse("10-1-2").value, equalTo(7));
     }
 }
